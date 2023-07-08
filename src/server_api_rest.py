@@ -189,7 +189,7 @@ def login():
             }), status_code.Unauthorized
 
 # TODO: não deixar a coluna para ser passada como parametro
-@APP.route("/user/update", methods = ["PUT"])
+@APP.route("/user/update", methods = ["PATCH"])
 def update_user():
     begin = time.time()
 
@@ -199,13 +199,14 @@ def update_user():
     )
 
     if (auth):
-        if (request.method == "PUT"):
+        if (request.method == "PATCH"):
             
             content_size = request.headers["Content-Length"]  
             username     = request.headers["username"]
-            data         = request.headers["data"]
+            
+            request_parsed = request.get_json() 
+            data = request_parsed["data"]
         
-
             response = update_user_controller.handle(
                 username,
                 data
@@ -218,7 +219,7 @@ def update_user():
                     bytes_sent      = sys.getsizeof(response), 
                     bytes_received  = content_size,
                     time_spent      = time.time() - begin,
-                    http_method     = "PUT", 
+                    http_method     = "PATCH", 
                     url             = "/user/update", 
                     http_status     = status_code.OK
                 )
@@ -233,7 +234,7 @@ def update_user():
                     bytes_sent      = 0, 
                     bytes_received  = 0,
                     time_spent      = time.time() - begin,
-                    http_method     = "PUT", 
+                    http_method     = "PATCH", 
                     url             = "/user/update", 
                     http_status     = status_code.Error
                 )
@@ -242,6 +243,17 @@ def update_user():
                     "message": "failed", "status_code": status_code.Error
                 }), status_code.Error
     else:
+        logger.new_rest_log(
+            user_ip_address = request.remote_addr, 
+            username        = username, 
+            bytes_sent      = 0, 
+            bytes_received  = 0,
+            time_spent      = time.time() - begin,
+            http_method     = "PATCH", 
+            url             = "/user/update", 
+            http_status     = status_code.Unauthorized
+        )  
+        
         return json.dumps({
             "message": "unauthorized", "status_code": status_code.Unauthorized
         }), status_code.Unauthorized
