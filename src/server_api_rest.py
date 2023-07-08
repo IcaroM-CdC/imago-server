@@ -73,7 +73,7 @@ def register():
     
     if (request.method == "POST"):
         
-        content_size   = request.headers["Content-Length"]        
+        content_size   = request.headers["Content-Length"]  
         request_parsed = request.get_json() 
         
         username    = request_parsed["username"]
@@ -142,8 +142,7 @@ def login():
     begin = time.time()
     
     if (request.method == "GET"):
-        
-        content_size = request.headers["Content-Length"]  
+        content_size = sys.getsizeof(request.headers)  
         username     = request.headers["username"]
         password     = request.headers["password"]
 
@@ -175,8 +174,8 @@ def login():
             logger.new_rest_log(
                 user_ip_address = request.remote_addr, 
                 username        = username, 
-                bytes_sent      = sys.getsizeof(response), 
-                bytes_received  = content_size,
+                bytes_sent      = 0, 
+                bytes_received  = 0,
                 time_spent      = time.time() - begin,
                 http_method     = "GET", 
                 url             = "/user/login", 
@@ -231,8 +230,8 @@ def update_user():
                 logger.new_rest_log(
                     user_ip_address = request.remote_addr, 
                     username        = username, 
-                    bytes_sent      = sys.getsizeof(response), 
-                    bytes_received  = content_size,
+                    bytes_sent      = 0, 
+                    bytes_received  = 0,
                     time_spent      = time.time() - begin,
                     http_method     = "PUT", 
                     url             = "/user/update", 
@@ -259,7 +258,7 @@ def get_user():
     if (auth):
         if (request.method == "GET"):
             
-            content_size = request.headers["Content-Length"]  
+            content_size = sys.getsizeof(request.headers) 
             username     = request.headers["requested-user"]
 
             response = find_user_controller.handle(
@@ -300,8 +299,8 @@ def get_user():
         logger.new_rest_log(
             user_ip_address = request.remote_addr, 
             username        = username, 
-            bytes_sent      = sys.getsizeof(response), 
-            bytes_received  = content_size,
+            bytes_sent      = 0, 
+            bytes_received  = 0,
             time_spent      = time.time() - begin,
             http_method     = "GET", 
             url             = "/user/get", 
@@ -374,8 +373,8 @@ def follow_user():
         logger.new_rest_log(
             user_ip_address = request.remote_addr, 
             username        = request.headers["username"], 
-            bytes_sent      = sys.getsizeof(response), 
-            bytes_received  = content_size,
+            bytes_sent      = 0, 
+            bytes_received  = 0,
             time_spent      = time.time() - begin,
             http_method     = "POST", 
             url             = "/follow/user", 
@@ -398,7 +397,7 @@ def list_followers():
     if (auth):
         if (request.method == "GET"):
             
-            content_size      = request.headers["Content-Length"]  
+            content_size = sys.getsizeof(request.headers) 
             followed_username = request.headers["username"]
 
             response = list_followers_controller.handle(
@@ -409,8 +408,8 @@ def list_followers():
                 logger.new_rest_log(
                     user_ip_address = request.remote_addr, 
                     username        = request.headers["username"], 
-                    bytes_sent      = sys.getsizeof(response), 
-                    bytes_received  = content_size,
+                    bytes_sent      = 0, 
+                    bytes_received  = 0,
                     time_spent      = time.time() - begin,
                     http_method     = "GET", 
                     url             = "/follow_user/list/followers", 
@@ -463,7 +462,7 @@ def list_followeds():
     if (auth):
         if (request.method == "GET"):
             
-            content_size      = request.headers["Content-Length"]  
+            content_size = sys.getsizeof(request.headers)  
             follower_username = request.headers["username"]
 
             response = list_followeds_controller.handle(
@@ -474,8 +473,8 @@ def list_followeds():
                 logger.new_rest_log(
                     user_ip_address = request.remote_addr, 
                     username        = request.headers["username"], 
-                    bytes_sent      = sys.getsizeof(response), 
-                    bytes_received  = content_size,
+                    bytes_sent      = 0, 
+                    bytes_received  = 0,
                     time_spent      = time.time() - begin,
                     http_method     = "GET", 
                     url             = "/follow_user/list/followeds", 
@@ -574,8 +573,8 @@ def remove_follower():
         logger.new_rest_log(
             user_ip_address = request.remote_addr, 
             username        = request.headers["username"], 
-            bytes_sent      = sys.getsizeof(response), 
-            bytes_received  = content_size,
+            bytes_sent      = 0, 
+            bytes_received  = 0,
             time_spent      = time.time() - begin,
             http_method     = "DELETE", 
             url             = "/follow_user/remove/follower", 
@@ -628,8 +627,8 @@ def remove_followed():
                 logger.new_rest_log(
                     user_ip_address = request.remote_addr, 
                     username        = request.headers["username"], 
-                    bytes_sent      = sys.getsizeof(response), 
-                    bytes_received  = content_size,
+                    bytes_sent      = 0, 
+                    bytes_received  = 0,
                     time_spent      = time.time() - begin,
                     http_method     = "DELETE", 
                     url             = "/follow_user/remove/followed", 
@@ -717,8 +716,8 @@ def create_post():
         logger.new_rest_log(
             user_ip_address = request.remote_addr, 
             username        = request.headers["username"], 
-            bytes_sent      = sys.getsizeof(response), 
-            bytes_received  = content_size,
+            bytes_sent      = 0, 
+            bytes_received  = 0,
             time_spent      = time.time() - begin,
             http_method     = "POST", 
             url             = "/post/new", 
@@ -741,7 +740,7 @@ def list_posts():
     if (auth):
         if (request.method == "GET"):
             
-            content_size    = request.headers["Content-Length"]  
+            content_size = sys.getsizeof(request.headers)  
             username        = request.headers["username"]
             target_username = request.headers["target-username"]
 
@@ -784,8 +783,8 @@ def list_posts():
         logger.new_rest_log(
             user_ip_address = request.remote_addr, 
             username        = request.headers["username"], 
-            bytes_sent      = sys.getsizeof(response), 
-            bytes_received  = content_size,
+            bytes_sent      = 0, 
+            bytes_received  = 0,
             time_spent      = time.time() - begin,
             http_method     = "GET", 
             url             = "/post/list", 
@@ -854,8 +853,8 @@ def like_post():
         logger.new_rest_log(
             user_ip_address = request.remote_addr, 
             username        = request.headers["username"], 
-            bytes_sent      = sys.getsizeof(response), 
-            bytes_received  = content_size,
+            bytes_sent      = 0, 
+            bytes_received  = 0,
             time_spent      = time.time() - begin,
             http_method     = "POST", 
             url             = "/post/like", 
@@ -924,8 +923,8 @@ def unlike_post():
         logger.new_rest_log(
             user_ip_address = request.remote_addr, 
             username        = request.headers["username"], 
-            bytes_sent      = sys.getsizeof(response), 
-            bytes_received  = content_size,
+            bytes_sent      = 0, 
+            bytes_received  = 0,
             time_spent      = time.time() - begin,
             http_method     = "POST", 
             url             = "/post/unlike", 
@@ -994,8 +993,8 @@ def coment_post():
         logger.new_rest_log(
             user_ip_address = request.remote_addr, 
             username        = request.headers["username"], 
-            bytes_sent      = sys.getsizeof(response), 
-            bytes_received  = content_size,
+            bytes_sent      = 0, 
+            bytes_received  = 0,
             time_spent      = time.time() - begin,
             http_method     = "POST", 
             url             = "/post/coment", 
@@ -1021,7 +1020,7 @@ def retrieve_feed():
         if (request.method == "GET"):
             begin = time.time()
             
-            content_size = request.headers["Content-Length"]  
+            content_size = sys.getsizeof(request.headers) 
             username     = request.headers["username"]
             limit        = request.headers["post-limit"]
 
@@ -1064,8 +1063,8 @@ def retrieve_feed():
         logger.new_rest_log(
             user_ip_address = request.remote_addr, 
             username        = request.headers["username"], 
-            bytes_sent      = sys.getsizeof(response), 
-            bytes_received  = content_size,
+            bytes_sent      = 0, 
+            bytes_received  = 0,
             time_spent      = time.time() - begin,
             http_method     = "GET", 
             url             = "/feed/retrieve", 

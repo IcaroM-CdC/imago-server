@@ -1,4 +1,5 @@
 import sqlite3 as SQL
+import time
 
 from core.entities import Post
 from core.entities import User
@@ -185,7 +186,6 @@ class UserRepository:
     def create(self, user: User):
         try:
             connection = DatabaseConnection()
-        
             cursor = connection.start_connection()
             cursor.execute(
                 queries.CREATE_USER, 
