@@ -1,8 +1,40 @@
-from core.services import LikePostsService
+import json
+
+from flask            import Request
+from misc.status_code import StatusCode
+from core.middlewares import EnsureAuthenticated
+from core.services    import LikePostsService
 
 class LikePostController:
-    def handle(self, username, post_id):
-        like_post_service = LikePostsService()
-        response = like_post_service.execute(username, post_id)
+    def handle(self, request:Request):
+        ensure_authenticated = EnsureAuthenticated()
+        like_post_service    = LikePostsService()
+
+        auth = ensure_authenticated.handle(
+            request.headers["token"],
+            request.headers["username"]
+        )
+
+        if (auth):
+            request_parsed = request.get_json() 
+
+            response = like_post_service.execute(
+                username = request.headers["username"], 
+                post_id  = request_parsed["post_id"]
+            )
+
+            if (response):
+                return json.dumps({
+                    "message": "success", "data": response, "status_code": StatusCode.OK
+                }), StatusCode.OK
+            else:
+                return json.dumps({
+                    "message": "failed", "data": "", "status_code": StatusCode.Error
+                }), StatusCode.Error
+        else:
+            return json.dumps({
+                "message": "unauthorized", "status_code": StatusCode.Unauthorized
+            }), StatusCode.Unauthorized
+
         
         return response

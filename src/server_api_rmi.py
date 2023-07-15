@@ -439,22 +439,22 @@ class PostRemoteObject:
     
 
 if (__name__ == "__main__"):
-
-    thread_pool = ThreadPool()
-    settings    = Configs().config
+    print("> Out")
+    # thread_pool = ThreadPool()
+    # settings    = Configs().config
     
-    remote_object_nameserver = NameServer()
+    # remote_object_nameserver = NameServer()
     
-    remote_object_nameserver.start(port=settings["server"]["rmi_port"])
+    # remote_object_nameserver.start(port=settings["server"]["rmi_port"])
     
-    remote_object_nameserver.add_remote_object(
-        remote_object=UserRemoteObject(),
-        name="user_remote_object"
-    )
+    # remote_object_nameserver.add_remote_object(
+    #     remote_object=UserRemoteObject(),
+    #     name="user_remote_object"
+    # )
     
-    remote_object_nameserver.add_remote_object(
-        remote_object=PostRemoteObject(),
-        name="post_remote_object"
-    )
+    # remote_object_nameserver.add_remote_object(
+    #     remote_object=PostRemoteObject(),
+    #     name="post_remote_object"
+    # )
     
-    remote_object_nameserver.loop() 
+    # remote_object_nameserver.loop() 

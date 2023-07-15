@@ -1,11 +1,27 @@
-from core.services import AuthUserService
+import json
+
+from flask            import Request
+from misc.status_code import StatusCode
+from core.services    import AuthUserService
 
 class AuthUserController:
-    def handle(self, username, password):
+    def handle(self, request:Request):
         authUserService = AuthUserService()
+
+        username     = request.headers["username"]
+        password     = request.headers["password"]
+
         response = authUserService.execute(username, password)
         
         if (response):
-            return response
+            return json.dumps({
+                "message": "authenticated", 
+                "token": response,
+                "status_code": StatusCode.OK
+            }), StatusCode.OK
         else:
-            return False
+            return json.dumps({
+                "message": "authentication failed", 
+                "token": "-1",
+                "status_code": StatusCode.Unauthorized
+            }), StatusCode.Unauthorized

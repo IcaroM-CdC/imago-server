@@ -44,10 +44,12 @@ class LogServerConnection:
                 headers=headers
             )
         except requests.exceptions.ConnectionError:
-            print(f"> REST log failure: {response.status_code}")
+            # print(f"> REST log failure: {response.status_code}")
+            print(f"> REST log failure: a")
             return True
         else:
             print(f"> REST log created: {response.status_code}")
+            
             return False
         
     def create_rmi_log(self, log:RMILog):

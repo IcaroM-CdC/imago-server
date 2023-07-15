@@ -72,121 +72,40 @@ def register():
     begin = time.time()
     
     if (request.method == "POST"):
+        response = create_user_controller.handle(request)
         
-        content_size   = request.headers["Content-Length"]  
-        request_parsed = request.get_json() 
-        
-        username    = request_parsed["username"]
-        password    = request_parsed["password"]
-        description = request_parsed["description"]
-
-        response = create_user_controller.handle(
-            username, 
-            password, 
-            description
+        logger.new_rest_log(
+            user_ip_address = request.remote_addr, 
+            username        = request.headers["username"], 
+            bytes_sent      = sys.getsizeof(response), 
+            bytes_received  = request.headers["Content-Length"],
+            time_spent      = time.time() - begin,
+            http_method     = "POST", 
+            url             = "/user/register", 
+            http_status     = response[1]
         )
-        
-        if (response == status_code.OK):
-            
-            logger.new_rest_log(
-                user_ip_address = request.remote_addr, 
-                username        = username, 
-                bytes_sent      = sys.getsizeof(response), 
-                bytes_received  = content_size,
-                time_spent      = time.time() - begin,
-                http_method     = "POST", 
-                url             = "/user/register", 
-                http_status     = status_code.OK
-            )
 
-            return json.dumps({ 
-                "message": "success", "status_code": status_code.OK 
-            }), status_code.OK 
-            
-        elif (response == status_code.UserExists): 
-            
-            logger.new_rest_log(
-                user_ip_address = request.remote_addr, 
-                username        = username, 
-                bytes_sent      = sys.getsizeof(response), 
-                bytes_received  = content_size,
-                time_spent      = time.time() - begin,
-                http_method     = "POST", 
-                url             = "/user/register", 
-                http_status     = status_code.UserExists
-            )
-            
-            return json.dumps({ 
-                "message": "user already exist", "status_code": status_code.UserExists 
-            }), status_code.Error
-            
-        elif (response == status_code.InvalidUsername):
-            
-            logger.new_rest_log(
-                user_ip_address = request.remote_addr, 
-                username        = username, 
-                bytes_sent      = sys.getsizeof(response), 
-                bytes_received  = content_size,
-                time_spent      = time.time() - begin,
-                http_method     = "POST", 
-                url             = "/user/register", 
-                http_status     = status_code.InvalidUsername
-            )
-            
-            return json.dumps({ 
-                "message": "invalid username", "status_code": status_code.InvalidUsername 
-            }), status_code.Error
+        return response
 
 @APP.route("/user/login", methods = ["GET"])
 def login():
     begin = time.time()
     
     if (request.method == "GET"):
-        content_size = sys.getsizeof(request.headers)  
-        username     = request.headers["username"]
-        password     = request.headers["password"]
-
-        response = auth_user_controller.handle(
-            username,
-            password
+        response = auth_user_controller.handle(request)
+            
+        logger.new_rest_log(
+            user_ip_address = request.remote_addr, 
+            username        = request.headers["username"], 
+            bytes_sent      = sys.getsizeof(response), 
+            bytes_received  = request.headers["Content-Length"],
+            time_spent      = time.time() - begin,
+            http_method     = "GET", 
+            url             = "/user/login", 
+            http_status     = response[1]
         )
 
-        if (response):
-            
-            logger.new_rest_log(
-                user_ip_address = request.remote_addr, 
-                username        = username, 
-                bytes_sent      = sys.getsizeof(response), 
-                bytes_received  = content_size,
-                time_spent      = time.time() - begin,
-                http_method     = "GET", 
-                url             = "/user/login", 
-                http_status     = status_code.OK
-            )
-            
-            return json.dumps({
-                "message": "authenticated", 
-                "token": response,
-                "status_code": status_code.OK
-            }), status_code.OK
-        else:
-            
-            logger.new_rest_log(
-                user_ip_address = request.remote_addr, 
-                username        = username, 
-                bytes_sent      = 0, 
-                bytes_received  = 0,
-                time_spent      = time.time() - begin,
-                http_method     = "GET", 
-                url             = "/user/login", 
-                http_status     = status_code.Unauthorized
-            )
-            
-            return json.dumps({
-                "message": "authentication failed", 
-                "token": "-1",
-                "status_code": status_code.Unauthorized
-            }), status_code.Unauthorized
+        return response
 
 # TODO: não deixar a coluna para ser passada como parametro
 @APP.route("/user/update", methods = ["PATCH"])
@@ -262,67 +181,21 @@ def update_user():
 def get_user():
     begin = time.time()
 
-    auth = ensure_authenticated.handle(
-        request.headers["token"],
-        request.headers["username"]
-    )
+    if (request.method == "GET"):
+        response = find_user_controller.handle(request)
 
-    if (auth):
-        if (request.method == "GET"):
-            
-            content_size = sys.getsizeof(request.headers) 
-            username     = request.headers["requested-user"]
-
-            response = find_user_controller.handle(
-                username,
-            )
-
-            if (response):
-                logger.new_rest_log(
-                    user_ip_address = request.remote_addr, 
-                    username        = username, 
-                    bytes_sent      = sys.getsizeof(response), 
-                    bytes_received  = content_size,
-                    time_spent      = time.time() - begin,
-                    http_method     = "GET", 
-                    url             = "/user/get", 
-                    http_status     = status_code.OK
-                )                
-                
-                return json.dumps({
-                    "message": "success" ,"data": response, "status_code": status_code.OK
-                }), status_code.OK
-            else:
-                logger.new_rest_log(
-                    user_ip_address = request.remote_addr, 
-                    username        = username, 
-                    bytes_sent      = sys.getsizeof(response), 
-                    bytes_received  = content_size,
-                    time_spent      = time.time() - begin,
-                    http_method     = "GET", 
-                    url             = "/user/get", 
-                    http_status     = status_code.Error
-                )  
-                
-                return json.dumps({
-                    "message": "failed" ,"data": "unexistent", "status_code": status_code.Error
-                }), status_code.Error
-    else:
         logger.new_rest_log(
             user_ip_address = request.remote_addr, 
-            username        = username, 
-            bytes_sent      = 0, 
-            bytes_received  = 0,
+            username        = request.headers["requested-user"], 
+            bytes_sent      = sys.getsizeof(response), 
+            bytes_received  = request.headers["Content-Length"] ,
             time_spent      = time.time() - begin,
             http_method     = "GET", 
             url             = "/user/get", 
-            http_status     = status_code.Unauthorized
-        )  
-        
-        return json.dumps({
-            "message": "unauthorized", "status_code": status_code.Unauthorized
-        }), status_code.Unauthorized
+            http_status     = response[1]
+        )                
 
+        return response
 
 # ================================ FOLLOW ROUTES ================================
 
@@ -330,137 +203,42 @@ def get_user():
 def follow_user():
     begin = time.time()
 
-    auth = ensure_authenticated.handle(
-        request.headers["token"],
-        request.headers["username"]
-    )
+    if (request.method == "POST"):
+        response = follow_user_controller.handle(request)
 
-    if (auth):
-        if (request.method == "POST"):
-            
-            content_size   = request.headers["Content-Length"]  
-            request_parsed = request.get_json()
-            
-            followed_username = request_parsed["followed_user"]
-            follower_username = request_parsed["follower_user"]
-
-            response = follow_user_controller.handle(
-                followed_username,
-                follower_username
-            )
-            
-            if (response):
-                logger.new_rest_log(
-                    user_ip_address = request.remote_addr, 
-                    username        = request.headers["username"], 
-                    bytes_sent      = sys.getsizeof(response), 
-                    bytes_received  = content_size,
-                    time_spent      = time.time() - begin,
-                    http_method     = "POST", 
-                    url             = "/follow/user", 
-                    http_status     = status_code.OK
-                )  
-                
-                
-                return json.dumps({
-               "message": "success", "status_code": status_code.OK 
-            }), status_code.OK
-            
-            else:
-                logger.new_rest_log(
-                    user_ip_address = request.remote_addr, 
-                    username        = request.headers["username"], 
-                    bytes_sent      = sys.getsizeof(response), 
-                    bytes_received  = content_size,
-                    time_spent      = time.time() - begin,
-                    http_method     = "POST", 
-                    url             = "/follow/user", 
-                    http_status     = status_code.Error
-                )  
-                
-                return json.dumps({
-                    "message": "failed", "status_code": status_code.Error 
-                }), status_code.Error
-    else:
         logger.new_rest_log(
             user_ip_address = request.remote_addr, 
             username        = request.headers["username"], 
-            bytes_sent      = 0, 
-            bytes_received  = 0,
+            bytes_sent      = sys.getsizeof(response), 
+            bytes_received  = request.headers["Content-Length"],
             time_spent      = time.time() - begin,
             http_method     = "POST", 
             url             = "/follow/user", 
-            http_status     = status_code.Unauthorized
+            http_status     = response[1]
         )  
         
-        return json.dumps({
-            "message": "unauthorized", "status_code": status_code.Unauthorized
-        }), status_code.Unauthorized
+        return response
+
 
 @APP.route("/follow_user/list/followers", methods = ["GET"])
 def list_followers():
     begin = time.time()
 
-    auth = ensure_authenticated.handle(
-        request.headers["token"],
-        request.headers["username"]
-    )
+    if (request.method == "GET"):
+        response = list_followers_controller.handle(request)
 
-    if (auth):
-        if (request.method == "GET"):
-            
-            content_size = sys.getsizeof(request.headers) 
-            followed_username = request.headers["username"]
-
-            response = list_followers_controller.handle(
-                followed_username
-            )
-
-            if (isinstance(response, list)):
-                logger.new_rest_log(
-                    user_ip_address = request.remote_addr, 
-                    username        = request.headers["username"], 
-                    bytes_sent      = 0, 
-                    bytes_received  = 0,
-                    time_spent      = time.time() - begin,
-                    http_method     = "GET", 
-                    url             = "/follow_user/list/followers", 
-                    http_status     = status_code.OK
-                ) 
-                
-                return json.dumps({
-                    "message": "success", "data": response, "status_code": status_code.OK
-                }), status_code.OK
-            else:
-                logger.new_rest_log(
-                    user_ip_address = request.remote_addr, 
-                    username        = request.headers["username"], 
-                    bytes_sent      = sys.getsizeof(response), 
-                    bytes_received  = content_size,
-                    time_spent      = time.time() - begin,
-                    http_method     = "GET", 
-                    url             = "/follow_user/list/followers", 
-                    http_status     = status_code.Error
-                ) 
-                
-                return json.dumps({
-                    "message": "failed", "data": "", "status_code": status_code.Error
-                }), status_code.Error
-    else:
         logger.new_rest_log(
             user_ip_address = request.remote_addr, 
             username        = request.headers["username"], 
             bytes_sent      = sys.getsizeof(response), 
-            bytes_received  = content_size,
+            bytes_received  = request.headers["Content-Length"],
             time_spent      = time.time() - begin,
             http_method     = "GET", 
             url             = "/follow_user/list/followers", 
-            http_status     = status_code.Unauthorized
+            http_status     = response[1]
         ) 
-        
-        return json.dumps({
-            "message": "unauthorized", "status_code": status_code.Unauthorized
-        }), status_code.Unauthorized
+
+        return response
     
 @APP.route("/follow_user/list/followeds", methods = ["GET"])
 def list_followeds():
@@ -673,212 +451,65 @@ def remove_followed():
 def create_post():
     begin = time.time()
 
-    auth = ensure_authenticated.handle(
-        request.headers["token"],
-        request.headers["username"]
-    )
+    if (request.method == "POST"):
+        response = create_post_controller.handle(request)
 
-    if (auth):
-        if (request.method == "POST"):
-            
-            content_size   = request.headers["Content-Length"]  
-            request_parsed = request.get_json()
-            
-            username    = request_parsed["username"]
-            description = request_parsed["description"]
-            image       = request_parsed["image"]
-
-            response = create_post_controller.handle(
-                username,
-                description,
-                image
-            )
-
-            if (response):
-                logger.new_rest_log(
-                    user_ip_address = request.remote_addr, 
-                    username        = request.headers["username"], 
-                    bytes_sent      = sys.getsizeof(response), 
-                    bytes_received  = content_size,
-                    time_spent      = time.time() - begin,
-                    http_method     = "POST", 
-                    url             = "/post/new", 
-                    http_status     = status_code.OK
-                ) 
-                
-                return json.dumps({
-                    "message": "success", "status_code": status_code.OK
-                }), status_code.OK
-            else:
-                logger.new_rest_log(
-                    user_ip_address = request.remote_addr, 
-                    username        = request.headers["username"], 
-                    bytes_sent      = sys.getsizeof(response), 
-                    bytes_received  = content_size,
-                    time_spent      = time.time() - begin,
-                    http_method     = "POST", 
-                    url             = "/post/new", 
-                    http_status     = status_code.Error
-                ) 
-                
-                return json.dumps({
-                    "message": "failed", "status_code": status_code.Error
-                }), status_code.Error
-    else:
         logger.new_rest_log(
             user_ip_address = request.remote_addr, 
             username        = request.headers["username"], 
-            bytes_sent      = 0, 
-            bytes_received  = 0,
+            bytes_sent      = sys.getsizeof(response), 
+            bytes_received  = request.headers["Content-Length"]  ,
             time_spent      = time.time() - begin,
             http_method     = "POST", 
             url             = "/post/new", 
-            http_status     = status_code.Unauthorized
+            http_status     = response[1]
         ) 
-        
-        return json.dumps({
-            "message": "unauthorized", "status_code": status_code.Unauthorized
-        }), status_code.Unauthorized
+
+        return response
 
 @APP.route("/post/list", methods = ["GET"])
 def list_posts():
     begin = time.time()
 
-    auth = ensure_authenticated.handle(
-        request.headers["token"],
-        request.headers["username"]
-    )
+    if (request.method == "GET"):
+        response = list_post_controller.handle(request)
 
-    if (auth):
-        if (request.method == "GET"):
-            
-            content_size = sys.getsizeof(request.headers)  
-            username        = request.headers["username"]
-            target_username = request.headers["target-username"]
-
-            response = list_post_controller.handle(
-                username,
-                target_username
-            )
-
-            if (isinstance(response, list)):
-                logger.new_rest_log(
-                    user_ip_address = request.remote_addr, 
-                    username        = request.headers["username"], 
-                    bytes_sent      = sys.getsizeof(response), 
-                    bytes_received  = content_size,
-                    time_spent      = time.time() - begin,
-                    http_method     = "GET", 
-                    url             = "/post/list", 
-                    http_status     = status_code.OK
-                ) 
-                
-                return json.dumps({
-                    "message": "success", "data": response, "status_code": status_code.OK
-                }), status_code.OK
-            else:
-                logger.new_rest_log(
-                    user_ip_address = request.remote_addr, 
-                    username        = request.headers["username"], 
-                    bytes_sent      = sys.getsizeof(response), 
-                    bytes_received  = content_size,
-                    time_spent      = time.time() - begin,
-                    http_method     = "GET", 
-                    url             = "/post/list", 
-                    http_status     = status_code.Error
-                ) 
-                
-                return json.dumps({
-                    "message": "failed", "data": "", "status_code": status_code.Error
-                }), status_code.Error
-    else:
         logger.new_rest_log(
             user_ip_address = request.remote_addr, 
             username        = request.headers["username"], 
-            bytes_sent      = 0, 
-            bytes_received  = 0,
+            bytes_sent      = sys.getsizeof(response), 
+            bytes_received  = request.headers["Content-Length"],
             time_spent      = time.time() - begin,
             http_method     = "GET", 
             url             = "/post/list", 
-            http_status     = status_code.Unauthorized
+            http_status     = response[1]
         ) 
-        
-        return json.dumps({
-            "message": "unauthorized", "status_code": status_code.Unauthorized
-        }), status_code.Unauthorized
+
+        return response
+
 
 @APP.route("/post/like", methods = ["POST"])
 def like_post():
     begin = time.time()
-    
-    auth = ensure_authenticated.handle(
-        request.headers["token"],
-        request.headers["username"]
-    )
 
-    if (auth):
-        if (request.method == "POST"):
-            
-            content_size   = request.headers["Content-Length"]  
-            request_parsed = request.get_json() 
-            
-            username = request.headers["username"]
-            post_id  = request_parsed["post_id"]
+    if (request.method == "POST"):
+        response = like_post_controller.handle(request)
 
-            response = like_post_controller.handle(
-                username,
-                post_id
-            )
-
-            if (response):
-                logger.new_rest_log(
-                    user_ip_address = request.remote_addr, 
-                    username        = request.headers["username"], 
-                    bytes_sent      = sys.getsizeof(response), 
-                    bytes_received  = content_size,
-                    time_spent      = time.time() - begin,
-                    http_method     = "POST", 
-                    url             = "/post/like", 
-                    http_status     = status_code.OK
-                )
-                
-                return json.dumps({
-                    "message": "success", "data": response, "status_code": status_code.OK
-                }), status_code.OK
-            else:
-                if (response):
-                    logger.new_rest_log(
-                        user_ip_address = request.remote_addr, 
-                        username        = request.headers["username"], 
-                        bytes_sent      = sys.getsizeof(response), 
-                        bytes_received  = content_size,
-                        time_spent      = time.time() - begin,
-                        http_method     = "POST", 
-                        url             = "/post/like", 
-                        http_status     = status_code.Error
-                    )
-                
-                return json.dumps({
-                    "message": "failed", "data": "", "status_code": status_code.Error
-                }), status_code.Error
-    else:
         logger.new_rest_log(
             user_ip_address = request.remote_addr, 
             username        = request.headers["username"], 
-            bytes_sent      = 0, 
-            bytes_received  = 0,
+            bytes_sent      = sys.getsizeof(response), 
+            bytes_received  = request.headers["Content-Length"],
             time_spent      = time.time() - begin,
             http_method     = "POST", 
             url             = "/post/like", 
-            http_status     = status_code.Unauthorized
+            http_status     = response[1]
         )
-        
-        return json.dumps({
-            "message": "unauthorized", "status_code": status_code.Unauthorized
-        }), status_code.Unauthorized
+
+        return response
 
 #TODO: alterar a rota para usar o metodo delete
-@APP.route("/post/unlike", methods = ["POST"])
+@APP.route("/post/unlike", methods = ["DELETE"])
 def unlike_post():
     begin = time.time()
     
@@ -888,204 +519,64 @@ def unlike_post():
     )
 
     if (auth):
-        if (request.method == "POST"):
-            
-            content_size   = request.headers["Content-Length"]  
-            request_parsed = request.get_json() 
-            
-            username = request.headers["username"]
-            post_id  = request_parsed["post_id"]
+        if (request.method == "DELETE"):
+            response = unlike_post_controller.handle(request)
 
-            response = unlike_post_controller.handle(
-                username,
-                post_id
+            logger.new_rest_log(
+                user_ip_address = request.remote_addr, 
+                username        = request.headers["username"], 
+                bytes_sent      = sys.getsizeof(response), 
+                bytes_received  = request.headers["Content-Length"],
+                time_spent      = time.time() - begin,
+                http_method     = "POST", 
+                url             = "/post/unlike", 
+                http_status     = status_code.OK
             )
 
-            if (response):
-                logger.new_rest_log(
-                    user_ip_address = request.remote_addr, 
-                    username        = request.headers["username"], 
-                    bytes_sent      = sys.getsizeof(response), 
-                    bytes_received  = content_size,
-                    time_spent      = time.time() - begin,
-                    http_method     = "POST", 
-                    url             = "/post/unlike", 
-                    http_status     = status_code.OK
-                )
-                
-                return json.dumps({
-                    "message": "success", "data": response, "status_code": status_code.OK
-                }), status_code.OK
-            else:
-                logger.new_rest_log(
-                    user_ip_address = request.remote_addr, 
-                    username        = request.headers["username"], 
-                    bytes_sent      = sys.getsizeof(response), 
-                    bytes_received  = content_size,
-                    time_spent      = time.time() - begin,
-                    http_method     = "POST", 
-                    url             = "/post/unlike", 
-                    http_status     = status_code.Error
-                )
-                
-                return json.dumps({
-                    "message": "failed", "data": "", "status_code": status_code.Error
-                }), status_code.Error
-    else:
-        logger.new_rest_log(
-            user_ip_address = request.remote_addr, 
-            username        = request.headers["username"], 
-            bytes_sent      = 0, 
-            bytes_received  = 0,
-            time_spent      = time.time() - begin,
-            http_method     = "POST", 
-            url             = "/post/unlike", 
-            http_status     = status_code.Unauthorized
-        )
-        
-        return json.dumps({
-            "message": "unauthorized", "status_code": status_code.Unauthorized
-        }), status_code.Unauthorized
+        return response
 
 @APP.route("/post/coment", methods = ["POST"])
 def coment_post():
     begin = time.time()
-    auth = ensure_authenticated.handle(
-        request.headers["token"],
-        request.headers["username"]
-    )
 
-    if (auth):
-        if (request.method == "POST"):
-            
-            content_size   = request.headers["Content-Length"]  
-            request_parsed = request.get_json()
-            
-            username  = request_parsed["username"]
-            post_id   = request_parsed["post_id"]
-            comentary = request_parsed["comentary"]
+    if (request.method == "POST"):
+        response = coment_post_controller.handle(request)
 
-            response = coment_post_controller.handle(
-                username,
-                post_id,
-                comentary
-            )
-
-            if (response):
-                logger.new_rest_log(
-                    user_ip_address = request.remote_addr, 
-                    username        = request.headers["username"], 
-                    bytes_sent      = sys.getsizeof(response), 
-                    bytes_received  = content_size,
-                    time_spent      = time.time() - begin,
-                    http_method     = "POST", 
-                    url             = "/post/coment", 
-                    http_status     = status_code.OK
-                )
-                
-                return json.dumps({
-                    "message": "success", "data": response, "status_code": status_code.OK
-                }), status_code.OK
-            else:
-                logger.new_rest_log(
-                    user_ip_address = request.remote_addr, 
-                    username        = request.headers["username"], 
-                    bytes_sent      = sys.getsizeof(response), 
-                    bytes_received  = content_size,
-                    time_spent      = time.time() - begin,
-                    http_method     = "POST", 
-                    url             = "/post/coment", 
-                    http_status     = status_code.Error
-                )
-                
-                return json.dumps({
-                    "message": "failed", "data": "", "status_code": status_code.Error
-                }), status_code.Error
-    else:
         logger.new_rest_log(
             user_ip_address = request.remote_addr, 
             username        = request.headers["username"], 
-            bytes_sent      = 0, 
-            bytes_received  = 0,
+            bytes_sent      = sys.getsizeof(response), 
+            bytes_received  = request.headers["Content-Length"],
             time_spent      = time.time() - begin,
             http_method     = "POST", 
             url             = "/post/coment", 
-            http_status     = status_code.Unauthorized
+            http_status     = response[1]
         )
-        
-        return json.dumps({
-            "message": "unauthorized", "status_code": status_code.Unauthorized
-        }), status_code.Unauthorized
+
+        return response
 
 
 # ================================ FEED ROUTES ================================
 
 @APP.route("/feed/retrieve", methods = ["GET"])
 def retrieve_feed():
+    begin = time.time()
 
-    auth = ensure_authenticated.handle(
-        request.headers["token"],
-        request.headers["username"]
-    )
-
-    if (auth):
-        if (request.method == "GET"):
-            begin = time.time()
-            
-            content_size = sys.getsizeof(request.headers) 
-            username     = request.headers["username"]
-            limit        = request.headers["post-limit"]
-
-            response = retrieve_feed_controller.handle(
-                username,
-                int(limit)
-            )
-            
-            if (isinstance(response, list)):
-                logger.new_rest_log(
-                    user_ip_address = request.remote_addr, 
-                    username        = request.headers["username"], 
-                    bytes_sent      = sys.getsizeof(response), 
-                    bytes_received  = content_size,
-                    time_spent      = time.time() - begin,
-                    http_method     = "GET", 
-                    url             = "/feed/retrieve", 
-                    http_status     = status_code.OK
-                )
-
-                return json.dumps({
-                    "message": "success", "data": response, "status_code": status_code.OK
-                }), status_code.OK
-            else:
-                logger.new_rest_log(
-                    user_ip_address = request.remote_addr, 
-                    username        = request.headers["username"], 
-                    bytes_sent      = sys.getsizeof(response), 
-                    bytes_received  = content_size,
-                    time_spent      = time.time() - begin,
-                    http_method     = "GET", 
-                    url             = "/feed/retrieve", 
-                    http_status     = status_code.OK
-                )
-
-                return json.dumps({
-                    "message": "failed", "data": "", "status_code": status_code.Error
-                }), status_code.Error
-    else:
+    if (request.method == "GET"):
+        response = retrieve_feed_controller.handle(request)
+        
         logger.new_rest_log(
             user_ip_address = request.remote_addr, 
             username        = request.headers["username"], 
-            bytes_sent      = 0, 
-            bytes_received  = 0,
+            bytes_sent      = sys.getsizeof(response), 
+            bytes_received  = request.headers["Content-Length"],
             time_spent      = time.time() - begin,
             http_method     = "GET", 
             url             = "/feed/retrieve", 
-            http_status     = status_code.Unauthorized
+            http_status     = response[1]
         )
 
-        return json.dumps({
-            "message": "unauthorized", "status_code": status_code.Unauthorized
-        }), status_code.Unauthorized
+        return response
 
 
 if (__name__ == "__main__"):
