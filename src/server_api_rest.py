@@ -28,8 +28,6 @@ from core.controller  import UnlikePostController
 
 from core.middlewares import EnsureAuthenticated
 
-
-
 status_code                = StatusCode()
 configs                    = Configs()
 logger                     = Logger()
@@ -61,7 +59,7 @@ def route_not_found(error):
     return json.dumps(
         {
             "message": message, 
-            "status_code": "404"
+            "status_code": 404
         }
     ), 404
 
@@ -73,12 +71,12 @@ def register():
     
     if (request.method == "POST"):
         response = create_user_controller.handle(request)
-        
+
         logger.new_rest_log(
             user_ip_address = request.remote_addr, 
-            username        = request.headers["username"], 
+            username        = "username", 
             bytes_sent      = sys.getsizeof(response), 
-            bytes_received  = request.headers["Content-Length"],
+            bytes_received  = sys.getsizeof(request),
             time_spent      = time.time() - begin,
             http_method     = "POST", 
             url             = "/user/register", 
@@ -98,7 +96,7 @@ def login():
             user_ip_address = request.remote_addr, 
             username        = request.headers["username"], 
             bytes_sent      = sys.getsizeof(response), 
-            bytes_received  = request.headers["Content-Length"],
+            bytes_received  = sys.getsizeof(request),
             time_spent      = time.time() - begin,
             http_method     = "GET", 
             url             = "/user/login", 
@@ -188,7 +186,7 @@ def get_user():
             user_ip_address = request.remote_addr, 
             username        = request.headers["requested-user"], 
             bytes_sent      = sys.getsizeof(response), 
-            bytes_received  = request.headers["Content-Length"] ,
+            bytes_received  = sys.getsizeof(request),
             time_spent      = time.time() - begin,
             http_method     = "GET", 
             url             = "/user/get", 
@@ -210,7 +208,7 @@ def follow_user():
             user_ip_address = request.remote_addr, 
             username        = request.headers["username"], 
             bytes_sent      = sys.getsizeof(response), 
-            bytes_received  = request.headers["Content-Length"],
+            bytes_received  = sys.getsizeof(request),
             time_spent      = time.time() - begin,
             http_method     = "POST", 
             url             = "/follow/user", 
@@ -218,7 +216,6 @@ def follow_user():
         )  
         
         return response
-
 
 @APP.route("/follow_user/list/followers", methods = ["GET"])
 def list_followers():
@@ -231,7 +228,7 @@ def list_followers():
             user_ip_address = request.remote_addr, 
             username        = request.headers["username"], 
             bytes_sent      = sys.getsizeof(response), 
-            bytes_received  = request.headers["Content-Length"],
+            bytes_received  = sys.getsizeof(request),
             time_spent      = time.time() - begin,
             http_method     = "GET", 
             url             = "/follow_user/list/followers", 
@@ -244,206 +241,59 @@ def list_followers():
 def list_followeds():
     begin = time.time()
 
-    auth = ensure_authenticated.handle(
-        request.headers["token"],
-        request.headers["username"]
-    )
+    if (request.method == "GET"):
+        response = list_followeds_controller.handle(request)
 
-    if (auth):
-        if (request.method == "GET"):
-            
-            content_size = sys.getsizeof(request.headers)  
-            follower_username = request.headers["username"]
-
-            response = list_followeds_controller.handle(
-                follower_username
-            )
-
-            if (isinstance(response, list)):
-                logger.new_rest_log(
-                    user_ip_address = request.remote_addr, 
-                    username        = request.headers["username"], 
-                    bytes_sent      = 0, 
-                    bytes_received  = 0,
-                    time_spent      = time.time() - begin,
-                    http_method     = "GET", 
-                    url             = "/follow_user/list/followeds", 
-                    http_status     = status_code.OK
-                ) 
-                
-                return json.dumps({
-                    "message": "success", "data": response, "status_code": status_code.OK
-                }), status_code.OK
-            else:
-                logger.new_rest_log(
-                    user_ip_address = request.remote_addr, 
-                    username        = request.headers["username"], 
-                    bytes_sent      = sys.getsizeof(response), 
-                    bytes_received  = content_size,
-                    time_spent      = time.time() - begin,
-                    http_method     = "GET", 
-                    url             = "/follow_user/list/followeds", 
-                    http_status     = status_code.Error
-                ) 
-                
-                return json.dumps({
-                    "message": "failed", "data": "", "status_code": status_code.Error
-                }), status_code.Error
-    else:
         logger.new_rest_log(
             user_ip_address = request.remote_addr, 
             username        = request.headers["username"], 
             bytes_sent      = sys.getsizeof(response), 
-            bytes_received  = content_size,
+            bytes_received  = sys.getsizeof(request),
             time_spent      = time.time() - begin,
             http_method     = "GET", 
             url             = "/follow_user/list/followeds", 
-            http_status     = status_code.Unauthorized
+            http_status     = response[1]
         ) 
-        
-        return json.dumps({
-            "message": "unauthorized", "status_code": status_code.Unauthorized
-        }), status_code.Unauthorized
+
+        return response
 
 @APP.route("/follow_user/remove/follower", methods = ["DELETE"])
 def remove_follower():
     begin = time.time()
 
-
-    auth = ensure_authenticated.handle(
-        request.headers["token"],
-        request.headers["username"]
-    )
-
-    if (auth):
-        if (request.method == "DELETE"):
-            
-            content_size   = request.headers["Content-Length"]  
-            request_parsed = request.get_json()
-            
-            followed_username = request.headers["username"]
-            follower_username = request_parsed["follower"]
-
-            response = remove_follower_controller.handle(
-                followed_username,
-                follower_username
-            )
-
-            if (response):
-                logger.new_rest_log(
-                    user_ip_address = request.remote_addr, 
-                    username        = request.headers["username"], 
-                    bytes_sent      = sys.getsizeof(response), 
-                    bytes_received  = content_size,
-                    time_spent      = time.time() - begin,
-                    http_method     = "DELETE", 
-                    url             = "/follow_user/remove/follower", 
-                    http_status     = status_code.OK
-                ) 
-                
-                return json.dumps({
-                    "message": "success", "status_code": status_code.OK
-                }), status_code.OK
-            else:
-                logger.new_rest_log(
-                    user_ip_address = request.remote_addr, 
-                    username        = request.headers["username"], 
-                    bytes_sent      = sys.getsizeof(response), 
-                    bytes_received  = content_size,
-                    time_spent      = time.time() - begin,
-                    http_method     = "DELETE", 
-                    url             = "/follow_user/remove/follower", 
-                    http_status     = status_code.Error
-                ) 
-                
-                return json.dumps({
-                    "message": "failed", "status_code": status_code.Error
-                }), status_code.Error
-    else:
+    if (request.method == "DELETE"):
+        response = remove_follower_controller.handle(request)
+        
         logger.new_rest_log(
             user_ip_address = request.remote_addr, 
             username        = request.headers["username"], 
-            bytes_sent      = 0, 
-            bytes_received  = 0,
+            bytes_sent      = sys.getsizeof(response), 
+            bytes_received  = sys.getsizeof(request),
             time_spent      = time.time() - begin,
             http_method     = "DELETE", 
             url             = "/follow_user/remove/follower", 
-            http_status     = status_code.Unauthorized
+            http_status     = response[1]
         ) 
-        
-        return json.dumps({
-            "message": "unauthorized", "status_code": status_code.Unauthorized
-        }), status_code.Unauthorized
+
+        return response
     
 @APP.route("/follow_user/remove/followed", methods = ["DELETE"])
 def remove_followed():
     begin = time.time()
 
-    auth = ensure_authenticated.handle(
-        request.headers["token"],
-        request.headers["username"]
-    )
-
-    if (auth):
-        if (request.method == "DELETE"):
-            
-            content_size   = request.headers["Content-Length"]  
-            request_parsed = request.get_json()
-            
-            follower_username = request.headers["username"]
-            followed_username = request_parsed["followed"]
-            
-            response = remove_followed_controller.handle(
-                follower_username,
-                followed_username
-            )
-
-            if (response):
-                logger.new_rest_log(
-                    user_ip_address = request.remote_addr, 
-                    username        = request.headers["username"], 
-                    bytes_sent      = sys.getsizeof(response), 
-                    bytes_received  = content_size,
-                    time_spent      = time.time() - begin,
-                    http_method     = "DELETE", 
-                    url             = "/follow_user/remove/followed", 
-                    http_status     = status_code.OK
-                ) 
-                
-                return json.dumps({
-                    "message": "success", "status_code": status_code.OK
-                }), status_code.OK
-            else:
-                logger.new_rest_log(
-                    user_ip_address = request.remote_addr, 
-                    username        = request.headers["username"], 
-                    bytes_sent      = 0, 
-                    bytes_received  = 0,
-                    time_spent      = time.time() - begin,
-                    http_method     = "DELETE", 
-                    url             = "/follow_user/remove/followed", 
-                    http_status     = status_code.Error
-                ) 
-                
-                return json.dumps({
-                    "message": "failed", "status_code": status_code.Error
-                }), status_code.Error
-    else:
+    if (request.method == "DELETE"):
+        response = remove_followed_controller.handle(request)
+        
         logger.new_rest_log(
             user_ip_address = request.remote_addr, 
             username        = request.headers["username"], 
             bytes_sent      = sys.getsizeof(response), 
-            bytes_received  = content_size,
+            bytes_received  = sys.getsizeof(request),
             time_spent      = time.time() - begin,
             http_method     = "DELETE", 
             url             = "/follow_user/remove/followed", 
-            http_status     = status_code.Unauthorized
+            http_status     = response[1]
         ) 
-        
-        return json.dumps({
-            "message": "unauthorized", "status_code": status_code.Unauthorized
-        }), status_code.Unauthorized
-
 
 # ================================ POST ROUTES ================================
 
@@ -458,7 +308,7 @@ def create_post():
             user_ip_address = request.remote_addr, 
             username        = request.headers["username"], 
             bytes_sent      = sys.getsizeof(response), 
-            bytes_received  = request.headers["Content-Length"]  ,
+            bytes_received  = sys.getsizeof(request),
             time_spent      = time.time() - begin,
             http_method     = "POST", 
             url             = "/post/new", 
@@ -478,7 +328,7 @@ def list_posts():
             user_ip_address = request.remote_addr, 
             username        = request.headers["username"], 
             bytes_sent      = sys.getsizeof(response), 
-            bytes_received  = request.headers["Content-Length"],
+            bytes_received  = sys.getsizeof(request),
             time_spent      = time.time() - begin,
             http_method     = "GET", 
             url             = "/post/list", 
@@ -499,7 +349,7 @@ def like_post():
             user_ip_address = request.remote_addr, 
             username        = request.headers["username"], 
             bytes_sent      = sys.getsizeof(response), 
-            bytes_received  = request.headers["Content-Length"],
+            bytes_received  = sys.getsizeof(request),
             time_spent      = time.time() - begin,
             http_method     = "POST", 
             url             = "/post/like", 
@@ -526,7 +376,7 @@ def unlike_post():
                 user_ip_address = request.remote_addr, 
                 username        = request.headers["username"], 
                 bytes_sent      = sys.getsizeof(response), 
-                bytes_received  = request.headers["Content-Length"],
+                bytes_received  = sys.getsizeof(request),
                 time_spent      = time.time() - begin,
                 http_method     = "POST", 
                 url             = "/post/unlike", 
@@ -546,7 +396,7 @@ def coment_post():
             user_ip_address = request.remote_addr, 
             username        = request.headers["username"], 
             bytes_sent      = sys.getsizeof(response), 
-            bytes_received  = request.headers["Content-Length"],
+            bytes_received  = sys.getsizeof(request),
             time_spent      = time.time() - begin,
             http_method     = "POST", 
             url             = "/post/coment", 
@@ -569,7 +419,7 @@ def retrieve_feed():
             user_ip_address = request.remote_addr, 
             username        = request.headers["username"], 
             bytes_sent      = sys.getsizeof(response), 
-            bytes_received  = request.headers["Content-Length"],
+            bytes_received  = sys.getsizeof(request),
             time_spent      = time.time() - begin,
             http_method     = "GET", 
             url             = "/feed/retrieve", 

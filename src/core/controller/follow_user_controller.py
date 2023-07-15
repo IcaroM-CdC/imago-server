@@ -20,7 +20,7 @@ class FollowUserController:
 
             response = follow_user_service.execute(
                 followed_username = request_parsed["followed_user"], 
-                follower_username = request_parsed["follower_user"]
+                follower_username = request.headers["username"]
             )
 
             if (response):

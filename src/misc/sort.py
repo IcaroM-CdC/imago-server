@@ -9,4 +9,3 @@ class Sort():
     def order_by_date(self, posts):
         ordered = sorted(posts, key=self.convert_to_datetime, reverse=True)
         return ordered
-    

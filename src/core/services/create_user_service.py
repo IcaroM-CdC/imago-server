@@ -1,6 +1,8 @@
 import uuid
 import time
+
 from passlib.hash         import sha256_crypt
+from misc.status_code     import StatusCode
 from misc.username_filter import UsernameFilter
 from core.repositories    import UserRepository
 from core.entities        import User
@@ -17,7 +19,7 @@ class CreateUserService:
             
             if (user_already_exists):
                 # return UserExists
-                return 700
+                return StatusCode.UserExists
             else:
                 id = uuid.uuid4()
                 password_hash = sha256_crypt.hash(password)
@@ -25,7 +27,7 @@ class CreateUserService:
                 user_repository.create(new_user)
                 
                 # return OK
-                return 200
+                return StatusCode.OK
         else:
             # return InvalidUsername
-            return 701
+            return StatusCode.InvalidUsername

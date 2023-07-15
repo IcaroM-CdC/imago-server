@@ -19,7 +19,7 @@ class CreateUserController:
         if (response == StatusCode.OK):
             return json.dumps({ 
                 "message": "success", "status_code": StatusCode.OK 
-            }), StatusCode.OK    
+            }), StatusCode.Created
         
         elif (response == StatusCode.UserExists): 
             return json.dumps({ 

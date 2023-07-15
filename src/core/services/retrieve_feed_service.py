@@ -35,11 +35,11 @@ class RetrieveFeedService:
                     response.append(fetched_posts[index2])
 
             if (len(response) != 0):
-                if (posts_limit != 0):
-                    if (len(response) < posts_limit):
+                if (int(posts_limit) != 0):
+                    if (len(response) < int(posts_limit)):
                         limit = len(response)
                     else:
-                        limit = posts_limit
+                        limit = int(posts_limit)
 
                     for index in range(limit):
                         posts.append(response[index])

@@ -6,6 +6,18 @@ from core.middlewares import EnsureAuthenticated
 from core.services import RetrieveFeedService
 
 class RetrieveFeedController:
+    def __init__(self):
+        self.response_ids = (
+            "id", 
+            "description",
+            "likes",
+            "created_date",
+            "created_time",
+            "image",
+            "owner",
+            "owner_id",
+            "already_liked"
+        )
     def handle(self, request:Request): # retorna um array de posts
         ensure_authenticated = EnsureAuthenticated()
         retrieve_feed_service = RetrieveFeedService()
@@ -22,14 +34,19 @@ class RetrieveFeedController:
             )
         
             if (isinstance(response, list)):
+                formated_response = []
+
+                for post in response:
+                    formated_response.append(dict(zip(self.response_ids, post)))
+
                 return json.dumps({
-                    "message": "success", "data": response, "status_code": StatusCode.OK
+                    "message": "success", "data": formated_response, "status_code": StatusCode.OK
                 }), StatusCode.OK
             else:
                 return json.dumps({
-                    "message": "failed", "data": "", "status_code": StatusCode.Error
+                    "message": "failed", "data": [], "status_code": StatusCode.Error
                 }), StatusCode.Error
         else:
             return json.dumps({
-                "message": "unauthorized", "status_code": StatusCode.Unauthorized
+                "message": "unauthorized", "data": [], "status_code": StatusCode.Unauthorized
             }), StatusCode.Unauthorized

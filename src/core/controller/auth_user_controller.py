@@ -22,6 +22,6 @@ class AuthUserController:
         else:
             return json.dumps({
                 "message": "authentication failed", 
-                "token": "-1",
+                "token": "",
                 "status_code": StatusCode.Unauthorized
             }), StatusCode.Unauthorized

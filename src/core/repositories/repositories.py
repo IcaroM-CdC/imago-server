@@ -284,6 +284,8 @@ class RelationshipRepository:
             connection.commit_operation()
             retrived_data = cursor.fetchall()
             connection.finish_connection()
+
+            print(retrived_data)
         except SQL.IntegrityError:
             return False
         else:

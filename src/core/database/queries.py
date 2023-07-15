@@ -56,7 +56,7 @@ FETCH_POSTS = """
         post.created_time,
         image.data,
         user.username,
-        user.description,
+        user.id,
         (SELECT COUNT(*) FROM post_like WHERE fk_like_user = (?) AND fk_like_post = post.id) AS is_liked
     FROM 
         post 
@@ -85,18 +85,22 @@ DELETE_RELATIONSHIP = """
 
 LIST_FOLLOWERS = """
     SELECT 
-        fk_relationship_user_follower
+        follow_relationship.fk_relationship_user_follower,
+        user.username
     FROM 
         follow_relationship 
-    WHERE fk_relationship_user_followed = (?)
+    INNER JOIN user ON user.id = follow_relationship.fk_relationship_user_follower
+    WHERE fk_relationship_user_followed = (?);
 """
 
 LIST_FOLLOWEDS = """
     SELECT 
-        fk_relationship_user_followed
+        follow_relationship.fk_relationship_user_followed,
+        user.username
     FROM 
         follow_relationship 
-    WHERE fk_relationship_user_follower = (?)
+    INNER JOIN user ON user.id = follow_relationship.fk_relationship_user_followed
+    WHERE fk_relationship_user_follower = (?);
 """
 
 VERIFY_ALREADY_FOLLOW = """

@@ -2,11 +2,11 @@ from core.repositories import RelationshipRepository
 from core.repositories import UserRepository
 
 class ListFollowedsService:
-    def execute(self, follower_username):
+    def execute(self, username):
         user_repository         = UserRepository()
         relationship_repository = RelationshipRepository()
 
-        user_exist = user_repository.find_one(follower_username)
+        user_exist = user_repository.find_one(username)
         
         if (user_exist):
             user_id  = user_exist[0]
