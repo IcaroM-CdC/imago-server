@@ -8,10 +8,10 @@ class AuthUserController:
     def handle(self, request:Request):
         authUserService = AuthUserService()
 
-        username     = request.headers["username"]
-        password     = request.headers["password"]
-
-        response = authUserService.execute(username, password)
+        response = authUserService.execute(
+            username = request.headers["username"],
+            password = request.headers["password"]
+        )
         
         if (response):
             return json.dumps({

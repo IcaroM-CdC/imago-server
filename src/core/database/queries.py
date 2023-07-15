@@ -138,7 +138,7 @@ LIKE_POST = """
             fk_like_post = (?) 
         AND 
             fk_like_user = (?)
-)
+    )
 """
 
 VERIFY_IF_LIKED = """
